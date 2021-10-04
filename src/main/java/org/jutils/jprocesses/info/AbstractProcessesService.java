@@ -15,18 +15,21 @@
  */
 package org.jutils.jprocesses.info;
 
-import org.jutils.jprocesses.model.JProcessesResponse;
-import org.jutils.jprocesses.model.ProcessInfo;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import org.jutils.jprocesses.model.JProcessesResponse;
+import org.jutils.jprocesses.model.ProcessInfo;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Info related with processes
  *
  * @author Javier Garcia Alonso
  */
+@Slf4j
 abstract class AbstractProcessesService implements ProcessesService {
     
     protected boolean fastMode = false;
@@ -45,7 +48,9 @@ abstract class AbstractProcessesService implements ProcessesService {
 
     public List<ProcessInfo> getList(String name, boolean fastMode) {
         this.fastMode = fastMode;
+        log.info("getList for {}", name);
         String rawData = getProcessesData(name);
+        log.info("rawData {}", rawData);
 
         List<Map<String, String>> mapList = parseList(rawData);
 

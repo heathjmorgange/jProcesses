@@ -27,11 +27,14 @@ import org.jutils.jprocesses.model.ProcessInfo;
 import org.jutils.jprocesses.util.OSDetector;
 import org.jutils.jprocesses.util.ProcessesUtils;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Service implementation for Unix/BSD systems
  *
  * @author Javier Garcia Alonso
  */
+@Slf4j
 class UnixProcessesService extends AbstractProcessesService {
 
     //Use BSD sytle to get data in order to be compatible with Mac Systems(thanks to jkuharev for this tip)
@@ -50,14 +53,20 @@ class UnixProcessesService extends AbstractProcessesService {
         
         int index;
         for (final String dataLine : dataStringLines) {
+            log.info("line {}", dataLine);
             String line = dataLine.trim();
             if (line.startsWith("PID")) {
                 // skip header
+                log.info("skip Header");
             } else {
                 // LinkedHashMap keeps the insertion order, thus easier to debug
                 Map<String, String> element = new LinkedHashMap<String, String>();
                 String[] elements = line.split("\\s+", PS_COLUMNS_SIZE + 5);
                 index = 0;
+                for (String elem : elements)
+                {
+                    log.info("element {}", elem);
+                }
                 element.put("pid", elements[index++]);
                 element.put("user", elements[index++]);
                 element.put("virtual_memory", elements[index++]);
@@ -73,6 +82,7 @@ class UnixProcessesService extends AbstractProcessesService {
                     element.put("start_datetime", 
                             ProcessesUtils.parseUnixLongTimeToFullDate(longDate));
                 } catch (ParseException e) {
+                    log.error("parse error", e);
                     element.put("start_datetime", "01/01/2000 00:00:00");
                     System.err.println("Failed formatting date from ps: " + longDate + ", using \"01/01/2000 00:00:00\"");
                 }
@@ -83,6 +93,7 @@ class UnixProcessesService extends AbstractProcessesService {
                 element.put("command", elements[index - 1]);
 
                 processesDataList.add(element);
+                log.info("added {}", element);
             }
         }
         loadFullCommandData(processesDataList);
@@ -98,12 +109,15 @@ class UnixProcessesService extends AbstractProcessesService {
     protected String getProcessesData(String name) {
         if (name != null) {
             if (OSDetector.isLinux()) {
+                log.info("isLinux");
                 return ProcessesUtils.executeCommand("ps",
                         "-o", PS_COLUMNS, "-C", name);
             } else {
+                log.info("is NOT linux");
                 this.nameFilter = name;
             }
         }
+        log.info("default I guess");
         return ProcessesUtils.executeCommand("ps",
                 "-e", "-o", PS_COLUMNS);
     }
